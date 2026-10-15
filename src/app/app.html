@@ -1,0 +1,235 @@
+<header class="site-header">
+  <a class="wordmark" href="#inicio" aria-label="Atlas del Chaco, volver al inicio">
+    <span class="wordmark-icon" aria-hidden="true">C</span>
+    <span>ATLAS <span class="wordmark-light">DEL CHACO</span></span>
+  </a>
+  <nav class="main-nav" aria-label="Navegación principal">
+    <a href="#cronologia">Cronología</a>
+    <a href="#territorio">Territorio</a>
+    <a href="#memoria">Memoria</a>
+  </nav>
+  <button class="search-trigger" type="button" aria-label="Buscar en el atlas" (click)="openSearch()">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"></circle><path d="m15.4 15.4 4.1 4.1"></path></svg>
+    <span>Buscar</span><kbd>Ctrl K</kbd>
+  </button>
+</header>
+
+<main>
+  <section class="hero" id="inicio" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="eyebrow-dot"></span> HISTORIA · TERRITORIO · MEMORIA</p>
+      <h1 id="hero-title">La guerra<br>que <em>dibujó</em><br>el Chaco.</h1>
+      <p class="hero-description">
+        Dos países. Un territorio inmenso y casi desconocido.
+        Tres años que cambiaron para siempre el corazón de Sudamérica.
+      </p>
+      <div class="hero-actions">
+        <a class="button button-dark" href="#cronologia">Explorar la historia <span aria-hidden="true">↘</span></a>
+        <button class="audio-button" type="button" [attr.aria-pressed]="speechActive()" (click)="toggleSpeech('intro')">
+          <span class="audio-icon" aria-hidden="true">{{ speechActive() && speechSource() === 'intro' ? 'Ⅱ' : '▶' }}</span>
+          <span class="audio-label">{{ speechActive() && speechSource() === 'intro' ? 'Detener narración' : 'Escuchar introducción' }}</span>
+        </button>
+      </div>
+      <div class="hero-footnote">
+        <span class="footnote-rule"></span>
+        <span>Una enciclopedia interactiva<br>sobre la Guerra del Chaco, 1932–1935</span>
+      </div>
+    </div>
+
+    <div class="hero-visual" aria-label="Mapa ilustrado del Gran Chaco">
+      <div class="map-topline">
+        <span>TEATRO DE OPERACIONES</span><span>20° S · 61° O</span>
+      </div>
+      <div class="map-frame">
+        <svg class="campaign-map" viewBox="0 0 600 480" role="img" aria-labelledby="map-title map-description">
+          <title id="map-title">Mapa esquemático del Gran Chaco</title>
+          <desc id="map-description">Bolivia al oeste y Paraguay al este. Selecciona un lugar para explorar la campaña.</desc>
+          <defs>
+            <pattern id="map-grid" width="36" height="36" patternUnits="userSpaceOnUse">
+              <path d="M36 0H0V36" fill="none" stroke="#635f48" stroke-opacity=".13" stroke-width=".7"></path>
+            </pattern>
+            <pattern id="map-hatch" width="8" height="8" patternTransform="rotate(32)" patternUnits="userSpaceOnUse">
+              <path d="M0 0V8" stroke="#b9784e" stroke-opacity=".28" stroke-width="2"></path>
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width="600" height="480" fill="url(#map-grid)"></rect>
+          <path class="map-country bolivia" d="M0 0H210L252 62 219 102 250 146 225 188 253 224 224 268 248 302 207 347 222 394 183 432 161 480H0Z"></path>
+          <path class="map-country paraguay" d="M210 0H600V480H161L183 432 222 394 207 347 248 302 224 268 253 224 225 188 250 146 219 102 252 62Z"></path>
+          <path class="map-region" d="M176 104 229 112 253 146 225 188 253 224 224 268 248 302 207 347 222 394 183 432 142 396 158 346 137 302 159 258 142 218 167 177 150 139Z" fill="url(#map-hatch)"></path>
+          <path class="river" d="M424 -10 C394 39 428 69 394 111 S422 180 383 222 402 288 365 328 396 392 348 435 364 463 331 490"></path>
+          <path class="river river-secondary" d="M493 -10 C468 38 497 73 468 112"></path>
+          <path class="boundary" d="M210 0 252 62 219 102 250 146 225 188 253 224 224 268 248 302 207 347 222 394 183 432 161 480"></path>
+          <text class="map-country-label" x="53" y="105">BOLIVIA</text>
+          <text class="map-country-label" x="415" y="372">PARAGUAY</text>
+          <text class="map-region-label" x="146" y="252" transform="rotate(-58 146 252)">GRAN CHACO</text>
+          <text class="map-water-label" x="384" y="183" transform="rotate(68 384 183)">RÍO PARAGUAY</text>
+          <text class="map-water-label" x="428" y="43" transform="rotate(65 428 43)">RÍO PILCOMAYO</text>
+          <path id="front-line" class="front-line" [attr.d]="selectedEvent().front"></path>
+          @for (place of places; track place.id) {
+            <g
+              class="map-place"
+              [class.is-highlighted]="selectedEvent().places.includes(place.id)"
+              [attr.data-place]="place.id"
+              [attr.tabindex]="0"
+              role="button"
+              [attr.aria-label]="place.label"
+              (click)="showPlace(place)"
+              (keydown.enter)="showPlace(place)"
+              (keydown.space)="showPlace(place); $event.preventDefault()">
+              <circle class="place-halo" [attr.cx]="place.x" [attr.cy]="place.y" r="13"></circle>
+              <circle class="place-dot" [attr.cx]="place.x" [attr.cy]="place.y" r="4"></circle>
+              <text [attr.x]="place.labelX" [attr.y]="place.labelY">{{ place.label }}</text>
+            </g>
+          }
+          <g class="map-compass" transform="translate(530 60)">
+            <path d="M0 24V-5M0-5l-5 10 5-3 5 3z" fill="#554e3e"></path>
+            <text x="0" y="-11" text-anchor="middle">N</text>
+          </g>
+          <g class="map-scale" transform="translate(42 430)">
+            <path d="M0 0H58M0-4V4M58-4V4" fill="none" stroke="#554e3e"></path>
+            <text x="0" y="16">0</text><text x="58" y="16" text-anchor="end">100 km</text>
+          </g>
+        </svg>
+        <div class="map-stamp"><span>1932</span><span>—</span><span>1935</span></div>
+      </div>
+      <div class="map-caption">
+        <span><i class="legend-dot"></i> Lugares de la campaña</span>
+        <span><i class="legend-dash"></i> Frente aproximado</span>
+        <button class="map-expand" type="button" aria-label="Leer sobre el territorio" (click)="openDialog('territory')">↗</button>
+      </div>
+      <div class="visual-index">{{ (selectedIndex() + 1).toString().padStart(2, '0') }} <span>/</span> 05</div>
+    </div>
+    <div class="vertical-note" aria-hidden="true">20°00′S — 62°30′W</div>
+  </section>
+
+  <section class="timeline-section" id="cronologia" aria-labelledby="timeline-title">
+    <div class="section-heading">
+      <div><p class="eyebrow">01 — EL CURSO DE LA GUERRA</p><h2 id="timeline-title">Tres años. Un territorio.</h2></div>
+      <p class="section-intro">Sigue los movimientos de la campaña y descubre los momentos que definieron el conflicto.</p>
+    </div>
+    <div class="timeline-shell">
+      <div class="timeline-controls">
+        <span class="timeline-label">SELECCIONA UN AÑO</span>
+        <div class="timeline-buttons" role="group" aria-label="Seleccionar año de la cronología">
+          @for (item of events; track item.year; let index = $index) {
+            <button type="button" class="year-button" [class.is-active]="selectedIndex() === index"
+              [attr.aria-pressed]="selectedIndex() === index" (click)="selectEvent(index)">{{ item.year }}</button>
+          }
+        </div>
+        <button id="play-timeline" class="play-button" type="button" [attr.aria-label]="isPlaying() ? 'Pausar cronología' : 'Reproducir cronología'" (click)="togglePlayback()">
+          <span aria-hidden="true">{{ isPlaying() ? 'Ⅱ' : '▶' }}</span>
+          <span id="play-label">{{ isPlaying() ? 'PAUSAR' : 'RECORRER' }}</span>
+        </button>
+      </div>
+      <div class="timeline-track" role="group" aria-label="Progreso de la cronología">
+        <div class="track-line"></div>
+        <div class="track-progress" [style.width.%]="selectedIndex() * 25"></div>
+        <div class="track-points" aria-hidden="true">
+          @for (item of events; track item.year; let index = $index) {
+            <span class="track-point" [class.is-active]="selectedIndex() === index"></span>
+          }
+        </div>
+      </div>
+      <article class="event-card" aria-live="polite" aria-atomic="true">
+        <div class="event-date"><span class="event-month">{{ selectedEvent().month }}</span><span class="event-year">{{ selectedEvent().year }}</span></div>
+        <div class="event-content">
+          <p class="event-kicker">{{ selectedEvent().kicker }}</p>
+          <h3>{{ selectedEvent().title }}</h3>
+          <p>{{ selectedEvent().description }}</p>
+        </div>
+        <button class="text-link" type="button" (click)="openDialog('event')">Leer el relato <span aria-hidden="true">↗</span></button>
+      </article>
+    </div>
+  </section>
+
+  <section class="territory-section" id="territorio" aria-labelledby="territory-title">
+    <div class="territory-heading">
+      <p class="eyebrow">02 — LEER EL PAISAJE</p>
+      <h2 id="territory-title">El terreno también<br>fue protagonista.</h2>
+      <p>En el Chaco, el calor, la distancia y la falta de agua podían ser tan decisivos como el combate. Comprender el lugar es comprender la guerra.</p>
+      <button class="text-link territory-link" type="button" (click)="openDialog('territory')">Acerca del territorio <span aria-hidden="true">↗</span></button>
+    </div>
+    <div class="terrain-card">
+      <div class="terrain-photo" role="img" aria-label="Ilustración de un paisaje chaqueño seco y boscoso">
+        <div class="sun-disc"></div><div class="terrain-horizon"></div>
+        <div class="terrain-tree tree-one"></div><div class="terrain-tree tree-two"></div><div class="terrain-tree tree-three"></div>
+        <div class="terrain-grass"></div>
+        <span class="terrain-coordinates">CHACO BOREAL · 1932</span>
+        <span class="terrain-photo-caption">Un territorio difícil de atravesar</span>
+      </div>
+      <div class="terrain-facts">
+        <div><span class="fact-number">03</span><span class="fact-label">AÑOS DE CONFLICTO<br>ARMADO (1932–1935)</span></div>
+        <div><span class="fact-number">≈ 100k</span><span class="fact-label">MUERTOS, ESTIMACIONES<br>HISTÓRICAS VARIABLES</span></div>
+        <div><span class="fact-number">1938</span><span class="fact-label">TRATADO DEFINITIVO<br>DE PAZ Y LÍMITES</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="memory-section" id="memoria" aria-labelledby="memory-title">
+    <div class="memory-top">
+      <div><p class="eyebrow">03 — PERSONAS Y MEMORIA</p><h2 id="memory-title">Más allá de las fronteras,<br>las vidas.</h2></div>
+      <p>Una historia compartida, contada desde distintas voces. El conflicto afectó a soldados, comunidades indígenas y familias a ambos lados del frente.</p>
+    </div>
+    <div class="memory-grid">
+      <button class="memory-card memory-card-main" type="button" (click)="openDialog('voices')">
+        <span class="memory-card-number">01 / VOCES</span><span class="memory-card-title">Cartas desde<br>el frente</span>
+        <span class="memory-card-footer">Testimonios, diarios y correspondencia <span>↗</span></span>
+      </button>
+      <button class="memory-card memory-card-second" type="button" (click)="openDialog('communities')">
+        <span class="memory-card-number">02 / TERRITORIO VIVO</span><span class="memory-card-title">Los pueblos<br>del Chaco</span>
+        <span class="memory-card-footer">Comunidades indígenas durante el conflicto <span>↗</span></span>
+      </button>
+      <button class="memory-card memory-card-third" type="button" (click)="openDialog('aftermath')">
+        <span class="memory-card-number">03 / DESPUÉS DE LA GUERRA</span><span class="memory-card-title">El largo camino<br>hacia la paz</span>
+        <span class="memory-card-footer">Del armisticio al tratado de 1938 <span>↗</span></span>
+      </button>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <a class="wordmark footer-wordmark" href="#inicio"><span class="wordmark-icon" aria-hidden="true">C</span><span>ATLAS <span class="wordmark-light">DEL CHACO</span></span></a>
+  <p>Una historia compleja merece ser contada con cuidado.</p>
+  <button class="text-link sources-trigger" type="button" (click)="openDialog('sources')">Fuentes y bibliografía <span aria-hidden="true">↗</span></button>
+  <span class="footer-date">BOLIVIA · PARAGUAY · 1932–1938</span>
+</footer>
+
+<dialog #contentDialog class="content-dialog" aria-labelledby="dialog-title" (close)="onContentDialogClose()">
+  <form method="dialog"><button class="dialog-close" aria-label="Cerrar">×</button></form>
+  @if (dialogContent(); as content) {
+    <p class="eyebrow">{{ content.kicker }}</p>
+    <h2 id="dialog-title">{{ content.title }}</h2>
+    <div class="dialog-body">
+      @for (paragraph of content.paragraphs; track paragraph) { <p>{{ paragraph }}</p> }
+    </div>
+    <button class="dialog-audio audio-button" type="button" [attr.aria-pressed]="speechActive()" (click)="toggleSpeech('dialog')">
+      <span class="audio-icon" aria-hidden="true">{{ speechActive() && speechSource() === 'dialog' ? 'Ⅱ' : '▶' }}</span>
+      <span class="audio-label">{{ speechActive() && speechSource() === 'dialog' ? 'Detener narración' : 'Escuchar este relato' }}</span>
+    </button>
+  }
+</dialog>
+
+<dialog #searchDialog class="search-dialog" aria-labelledby="search-title" (close)="onSearchDialogClose()">
+  <form method="dialog"><button class="dialog-close" aria-label="Cerrar búsqueda">×</button></form>
+  <p class="eyebrow">ATLAS DEL CHACO</p>
+  <h2 id="search-title">¿Qué quieres descubrir?</h2>
+  <label class="search-field">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"></circle><path d="m15.4 15.4 4.1 4.1"></path></svg>
+    <input #searchInput type="search" placeholder="Busca un lugar, una batalla, un año…" autocomplete="off"
+      [value]="searchQuery()" (input)="updateSearch($event)">
+  </label>
+  <div class="search-results" aria-live="polite">
+    @for (article of filteredArticles(); track article.title) {
+      <button class="search-result" type="button" (click)="openSearchResult(article)">
+        <span><span class="search-result-title">{{ article.title }}</span><span class="search-result-detail">{{ article.detail }}</span></span>
+        <span class="search-result-arrow" aria-hidden="true">↗</span>
+      </button>
+    } @empty {
+      <p class="empty-results">No encontramos resultados. Prueba con otro nombre, lugar o año.</p>
+    }
+  </div>
+</dialog>
+
+@if (toastMessage()) {
+  <div class="toast is-visible" role="status" aria-live="polite">{{ toastMessage() }}</div>
+}
